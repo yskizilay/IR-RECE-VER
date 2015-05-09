@@ -1,0 +1,95 @@
+#include <IRremote.h> // IR kutuphanesi
+#include <LiquidCrystal.h> // LCD kutuphanesi
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7); / LCD baglantilari
+
+float sicaklik;
+float analogdeger;
+const int sensorgiris = 5;
+
+const int RECV_PIN = 11; // IR pin giris  
+
+IRrecv irrecv(RECV_PIN);
+
+decode_results results;
+const int LED_1 = 12;
+const int LED_2 = 9;
+const int LED_3 = 10;
+
+void setup()
+{
+  Serial.begin(9600);
+  
+  lcd.begin(16,2);
+  
+  irrecv.enableIRIn(); // IR aktif etme
+  irrecv.blink13(true);
+  
+  pinMode(LED_1,OUTPUT);
+  pinMode(LED_2,OUTPUT);
+  pinMode(LED_3,OUTPUT);
+}
+
+void loop() {
+  if (irrecv.decode(&results)) {
+    if (results.decode_type == NEC) {
+      Serial.print("NEC: ");
+    } else if (results.decode_type == SONY) {
+      Serial.print("SONY: ");
+    } else if (results.decode_type == RC5) {
+      Serial.print("RC5: ");
+    } else if (results.decode_type == RC6) {
+      Serial.print("RC6: ");
+    } else if (results.decode_type == UNKNOWN) {
+      Serial.print("UNKNOWN: ");
+    }
+    Serial.println(results.value, HEX);
+     
+  
+    
+ switch(results.value){
+   case 0xC101E57B: 
+   
+     lcd.clear(); 
+     lcd.setCursor(0,1);
+     lcd.print("  1. LED AKTIF");
+     digitalWrite(LED_1,HIGH); 
+     delay(1000); digitalWrite(LED_1,LOW);
+         lcd.clear(); 
+       break;
+   
+   case 0x97483BFB: // IR nin gonderdigi degerler  
+   
+     lcd.clear(); 
+     lcd.setCursor(0,1);
+     lcd.print("  2. LED AKTIF"); digitalWrite(LED_2,HIGH); delay(1000); digitalWrite(LED_2,LOW);
+        lcd.clear();  
+       break;
+   
+   case 0xF0C41643: 
+   
+     lcd.clear(); 
+     lcd.setCursor(0,1);
+     lcd.print("  3. LED AKTIF"); digitalWrite(LED_3,HIGH); delay(1000); digitalWrite(LED_3,LOW);
+        lcd.clear(); 
+       break;
+       
+    case 0x9716BE3F:
+    analogdeger = analogRead(sensorgiris); // sicaklik icin analog okuma 
+    analogdeger = (analogdeger/1023)*5000;
+    sicaklik = analogdeger /10,0; 
+    
+     lcd.clear(); 
+     lcd.setCursor(0,0);
+     lcd.print("  Sicaklik ");
+     lcd.setCursor(8,1);
+     lcd.print(sicaklik); 
+     delay(1000);
+     lcd.clear();
+    
+    
+   }
+   
+  irrecv.resume(); // LOOP icinde oldugumuz icin okumaya devam ettiriyoruz
+  
+}
+} 
